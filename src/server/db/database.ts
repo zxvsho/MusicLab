@@ -57,6 +57,8 @@ export interface Cancion {
   duracion_segundos: number;
   anio_lanzamiento: number;
   pista_numero: number;
+  proveedor_audio: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+  proveedor_id?: string;
   archivo_url: string;
   bit_rate_kbps: number;
   fecha_subida: string;
@@ -265,7 +267,9 @@ class MusicLabDatabase {
         duracion_segundos: 245,
         anio_lanzamiento: 2023,
         pista_numero: 1,
-        archivo_url: 'https://cdn.freesound.org/previews/612/612092_5674468-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: 'DWcJFNfaw9c',
+        archivo_url: 'https://www.youtube.com/watch?v=DWcJFNfaw9c',
         bit_rate_kbps: 320,
         fecha_subida: '2026-01-20 12:30:00'
       },
@@ -277,7 +281,9 @@ class MusicLabDatabase {
         duracion_segundos: 312,
         anio_lanzamiento: 2023,
         pista_numero: 2,
-        archivo_url: 'https://cdn.freesound.org/previews/568/568903_12876615-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: 'jfKfPfyJRdk',
+        archivo_url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
         bit_rate_kbps: 320,
         fecha_subida: '2026-01-20 12:35:00'
       },
@@ -289,7 +295,9 @@ class MusicLabDatabase {
         duracion_segundos: 198,
         anio_lanzamiento: 2024,
         pista_numero: 1,
-        archivo_url: 'https://cdn.freesound.org/previews/536/536108_7037-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: '5qap5aO4i9A',
+        archivo_url: 'https://www.youtube.com/watch?v=5qap5aO4i9A',
         bit_rate_kbps: 256,
         fecha_subida: '2026-01-22 16:00:00'
       },
@@ -301,7 +309,9 @@ class MusicLabDatabase {
         duracion_segundos: 224,
         anio_lanzamiento: 2024,
         pista_numero: 2,
-        archivo_url: 'https://cdn.freesound.org/previews/608/608645_11861866-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: 'kXYiU_JCYtU',
+        archivo_url: 'https://www.youtube.com/watch?v=kXYiU_JCYtU',
         bit_rate_kbps: 320,
         fecha_subida: '2026-01-22 16:05:00'
       },
@@ -313,7 +323,9 @@ class MusicLabDatabase {
         duracion_segundos: 185,
         anio_lanzamiento: 2022,
         pista_numero: 1,
-        archivo_url: 'https://cdn.freesound.org/previews/469/469904_7037-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: '4Tr0otuiQuU',
+        archivo_url: 'https://www.youtube.com/watch?v=4Tr0otuiQuU',
         bit_rate_kbps: 320,
         fecha_subida: '2026-02-01 10:00:00'
       },
@@ -325,7 +337,9 @@ class MusicLabDatabase {
         duracion_segundos: 210,
         anio_lanzamiento: 2022,
         pista_numero: 2,
-        archivo_url: 'https://cdn.freesound.org/previews/515/515823_11861866-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: '7NOSDKb0HlU',
+        archivo_url: 'https://www.youtube.com/watch?v=7NOSDKb0HlU',
         bit_rate_kbps: 320,
         fecha_subida: '2026-02-01 10:05:00'
       },
@@ -337,7 +351,9 @@ class MusicLabDatabase {
         duracion_segundos: 268,
         anio_lanzamiento: 2025,
         pista_numero: 1,
-        archivo_url: 'https://cdn.freesound.org/previews/495/495574_10672027-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: 'MVPTGNGiI-4',
+        archivo_url: 'https://www.youtube.com/watch?v=MVPTGNGiI-4',
         bit_rate_kbps: 320,
         fecha_subida: '2026-02-10 18:40:00'
       },
@@ -349,7 +365,9 @@ class MusicLabDatabase {
         duracion_segundos: 290,
         anio_lanzamiento: 2025,
         pista_numero: 2,
-        archivo_url: 'https://cdn.freesound.org/previews/530/530701_11861866-lq.mp3',
+        proveedor_audio: 'youtube',
+        proveedor_id: '21X5lGlDOfg',
+        archivo_url: 'https://www.youtube.com/watch?v=21X5lGlDOfg',
         bit_rate_kbps: 320,
         fecha_subida: '2026-02-10 18:45:00'
       }
@@ -544,6 +562,8 @@ class MusicLabDatabase {
     duracion_segundos: number;
     anio_lanzamiento: number;
     pista_numero?: number;
+    proveedor_audio?: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+    proveedor_id?: string;
     archivo_url: string;
     bit_rate_kbps?: number;
     genero_ids: number[];
@@ -573,6 +593,8 @@ class MusicLabDatabase {
       duracion_segundos: Number(data.duracion_segundos),
       anio_lanzamiento: Number(data.anio_lanzamiento),
       pista_numero: data.pista_numero || 1,
+      proveedor_audio: data.proveedor_audio || 'youtube',
+      proveedor_id: data.proveedor_id || '',
       archivo_url: data.archivo_url.trim(),
       bit_rate_kbps: data.bit_rate_kbps || 320,
       fecha_subida: now
@@ -601,6 +623,8 @@ class MusicLabDatabase {
       duracion_segundos: number;
       anio_lanzamiento: number;
       pista_numero?: number;
+      proveedor_audio?: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+      proveedor_id?: string;
       archivo_url: string;
       bit_rate_kbps?: number;
       genero_ids: number[];
@@ -631,6 +655,8 @@ class MusicLabDatabase {
       duracion_segundos: Number(data.duracion_segundos),
       anio_lanzamiento: Number(data.anio_lanzamiento),
       pista_numero: data.pista_numero ?? this.canciones[songIndex].pista_numero,
+      proveedor_audio: data.proveedor_audio ?? this.canciones[songIndex].proveedor_audio,
+      proveedor_id: data.proveedor_id ?? this.canciones[songIndex].proveedor_id,
       archivo_url: data.archivo_url.trim(),
       bit_rate_kbps: data.bit_rate_kbps ?? this.canciones[songIndex].bit_rate_kbps
     };

@@ -57,6 +57,8 @@ export interface Cancion {
   duracion_segundos: number;
   anio_lanzamiento: number;
   pista_numero: number;
+  proveedor_audio: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+  proveedor_id?: string;
   archivo_url: string;
   bit_rate_kbps: number;
   fecha_subida?: string;

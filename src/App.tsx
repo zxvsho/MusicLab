@@ -13,6 +13,8 @@ import { GenresView } from './views/GenresView.tsx';
 import { PlaylistsView } from './views/PlaylistsView.tsx';
 import { DatabaseSchemaView } from './views/DatabaseSchemaView.tsx';
 import { SQLConsoleView } from './views/SQLConsoleView.tsx';
+import { AnalyticsView } from './views/AnalyticsView.tsx';
+import { AcademicDeliverableView } from './views/AcademicDeliverableView.tsx';
 import { ApiService } from './services/api.ts';
 import type { Cancion, Usuario } from './types/index.ts';
 
@@ -182,6 +184,10 @@ export default function App() {
         setActiveTab('schema');
       } else if (e.key === '7') {
         setActiveTab('console');
+      } else if (e.key === '8') {
+        setActiveTab('analytics');
+      } else if (e.key === '9') {
+        setActiveTab('report');
       } else if (e.code === 'Space') {
         e.preventDefault();
         handleTogglePlayPause();
@@ -247,6 +253,19 @@ export default function App() {
 
         {activeTab === 'console' && (
           <SQLConsoleView currentUser={currentUser} onShowToast={showToast} />
+        )}
+
+        {activeTab === 'analytics' && (
+          <AnalyticsView
+            onShowToast={showToast}
+            onNavigateToConsole={(sql) => {
+              setActiveTab('console');
+            }}
+          />
+        )}
+
+        {activeTab === 'report' && (
+          <AcademicDeliverableView onShowToast={showToast} />
         )}
       </main>
 

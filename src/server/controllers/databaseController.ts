@@ -91,3 +91,132 @@ export function downloadSchemaSQL(_req: Request, res: Response): void {
     res.status(404).json({ error: 'Archivo musiclab_schema.sql no encontrado.' });
   }
 }
+
+export function getAnalyticsData(_req: Request, res: Response): void {
+  const stats = db.getStats();
+  const songs = db.canciones;
+  const artists = db.artistas;
+  const albums = db.albumes;
+  const genres = db.generos;
+
+  // Duración total acumulada
+  const totalSeconds = songs.reduce((acc: number, s: { duracion_segundos: number }) => acc + (s.duracion_segundos || 0), 0);
+
+  // Distribución por Género a través de cancion_generos
+  const genreCountMap: Record<string, number> = {};
+  for (const cg of db.cancion_generos) {
+    const g = genres.find((gen) => gen.id === cg.genero_id);
+    if (g) {
+      genreCountMap[g.nombre] = (genreCountMap[g.nombre] || 0) + 1;
+    }
+  }
+  const genresDistribution = Object.entries(genreCountMap).map(([nombre, count]) => ({
+    nombre,
+    count,
+    porcentaje: Math.round((count / Math.max(songs.length, 1)) * 100)
+  }));
+
+  // Distribución por Proveedor de Audio
+  const providerCountMap: Record<string, number> = {
+    youtube: 0,
+    soundcloud: 0,
+    spotify: 0,
+    direct_url: 0
+  };
+  for (const s of songs) {
+    const prov = s.proveedor_audio || 'youtube';
+    providerCountMap[prov] = (providerCountMap[prov] || 0) + 1;
+  }
+
+  // Distribución por Década / Año
+  const yearCountMap: Record<string, number> = {};
+  for (const s of songs) {
+    const y = s.anio_lanzamiento?.toString() || 'Desconocido';
+    yearCountMap[y] = (yearCountMap[y] || 0) + 1;
+  }
+  const yearDistribution = Object.entries(yearCountMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([anio, count]) => ({ anio, count }));
+
+  // Top Artistas con más temas
+  const artistSongs = artists.map((a: { id: number; nombre: string; pais_origen: string }) => ({
+    id: a.id,
+    nombre: a.nombre,
+    pais: a.pais_origen,
+    totalCanciones: songs.filter((s: { artista_id: number }) => s.artista_id === a.id).length,
+    totalAlbumes: albums.filter((al: { artista_id: number }) => al.artista_id === a.id).length
+  })).sort((a: { totalCanciones: number }, b: { totalCanciones: number }) => b.totalCanciones - a.totalCanciones);
+
+  // Consultas y subconsultas demostrativas para el trabajo académico
+  const academicQueries = [
+    {
+      id: 'subconsulta_in',
+      titulo: 'Subconsulta con IN (Subquery)',
+      descripcion: 'Canciones compuestas por artistas que tienen álbumes publicados después del año 2023.',
+      sql: `SELECT c.id, c.titulo, c.anio_lanzamiento, c.proveedor_audio
+FROM canciones c
+WHERE c.artista_id IN (
+    SELECT a.artista_id 
+    FROM albumes a 
+    WHERE a.anio_lanzamiento >= 2024
+);`,
+      tipo: 'Subconsulta no correlacionada con IN'
+    },
+    {
+      id: 'group_by_having',
+      titulo: 'Agrupación GROUP BY con filtro HAVING',
+      descripcion: 'Géneros que clasifican a más de una canción en el repositorio.',
+      sql: `SELECT g.nombre AS genero, COUNT(cg.cancion_id) AS total_canciones
+FROM generos g
+JOIN cancion_generos cg ON g.id = cg.genero_id
+GROUP BY g.id, g.nombre
+HAVING COUNT(cg.cancion_id) > 1
+ORDER BY total_canciones DESC;`,
+      tipo: 'Agregación y condición sobre grupos (HAVING)'
+    },
+    {
+      id: 'subconsulta_exists',
+      titulo: 'Subconsulta correlacionada con EXISTS',
+      descripcion: 'Artistas que poseen al menos una canción agregada a listas de favoritos de la comunidad.',
+      sql: `SELECT ar.nombre, ar.pais_origen
+FROM artistas ar
+WHERE EXISTS (
+    SELECT 1 
+    FROM canciones c
+    JOIN favoritos f ON c.id = f.cancion_id
+    WHERE c.artista_id = ar.id
+);`,
+      tipo: 'Subconsulta correlacionada EXISTS'
+    },
+    {
+      id: 'subconsulta_escalar',
+      titulo: 'Subconsulta escalar en SELECT (Porcentaje)',
+      descripcion: 'Cálculo del porcentaje de duración de cada canción respecto a la duración total del catálogo.',
+      sql: `SELECT 
+    c.titulo, 
+    c.duracion_segundos,
+    ROUND((c.duracion_segundos / (SELECT SUM(duracion_segundos) FROM canciones)) * 100, 2) AS pct_catalogo
+FROM canciones c
+ORDER BY c.duracion_segundos DESC;`,
+      tipo: 'Subconsulta escalar proyectada'
+    }
+  ];
+
+  res.json({
+    kpis: {
+      totalCanciones: stats.canciones,
+      totalArtistas: stats.artistas,
+      totalAlbumes: stats.albumes,
+      totalGeneros: stats.generos,
+      totalListas: stats.listas_reproduccion,
+      totalUsuarios: stats.usuarios,
+      totalSegundos: totalSeconds,
+      duracionMinutos: Math.round(totalSeconds / 60)
+    },
+    genresDistribution,
+    providerDistribution: providerCountMap,
+    yearDistribution,
+    artistSongs,
+    academicQueries
+  });
+}

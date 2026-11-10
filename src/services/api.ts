@@ -113,6 +113,57 @@ export class ApiService {
       return { total: db.listas.length, data: db.listas } as T;
     }
 
+    if (endpoint.startsWith('/database/analytics')) {
+      const totalSeconds = db.canciones.reduce((acc, s) => acc + (s.duracion_segundos || 0), 0);
+      return {
+        kpis: {
+          totalCanciones: db.canciones.length,
+          totalArtistas: db.artistas.length,
+          totalAlbumes: db.albumes.length,
+          totalGeneros: db.generos.length,
+          totalListas: db.listas.length,
+          totalUsuarios: db.usuarios.length,
+          totalSegundos: totalSeconds,
+          duracionMinutos: Math.round(totalSeconds / 60)
+        },
+        genresDistribution: db.generos.map((g) => ({
+          nombre: g.nombre,
+          count: db.canciones.filter((c) => c.generos.some((cg) => cg.id === g.id)).length,
+          porcentaje: 35
+        })),
+        providerDistribution: { youtube: 8, soundcloud: 0, spotify: 0, direct_url: 0 },
+        yearDistribution: [
+          { anio: '2022', count: 2 },
+          { anio: '2023', count: 2 },
+          { anio: '2024', count: 2 },
+          { anio: '2025', count: 2 }
+        ],
+        artistSongs: db.artistas.map((a) => ({
+          id: a.id,
+          nombre: a.nombre,
+          pais: a.pais_origen,
+          totalCanciones: db.canciones.filter((s) => s.artista_id === a.id).length,
+          totalAlbumes: db.albumes.filter((al) => al.artista_id === a.id).length
+        })),
+        academicQueries: [
+          {
+            id: 'subconsulta_in',
+            titulo: 'Subconsulta con IN (Subquery)',
+            descripcion: 'Canciones compuestas por artistas que tienen álbumes publicados después del año 2023.',
+            sql: `SELECT c.id, c.titulo, c.anio_lanzamiento, c.proveedor_audio\nFROM canciones c\nWHERE c.artista_id IN (\n    SELECT a.artista_id \n    FROM albumes a \n    WHERE a.anio_lanzamiento >= 2024\n);`,
+            tipo: 'Subconsulta no correlacionada con IN'
+          },
+          {
+            id: 'group_by_having',
+            titulo: 'Agrupación GROUP BY con filtro HAVING',
+            descripcion: 'Géneros que clasifican a más de una canción en el repositorio.',
+            sql: `SELECT g.nombre AS genero, COUNT(cg.cancion_id) AS total_canciones\nFROM generos g\nJOIN cancion_generos cg ON g.id = cg.genero_id\nGROUP BY g.id, g.nombre\nHAVING COUNT(cg.cancion_id) > 1\nORDER BY total_canciones DESC;`,
+            tipo: 'Agregación y condición sobre grupos (HAVING)'
+          }
+        ]
+      } as T;
+    }
+
     if (endpoint.startsWith('/database/schema')) {
       return {
         databaseName: 'musiclab_db',
@@ -196,6 +247,8 @@ export class ApiService {
     duracion_segundos: number;
     anio_lanzamiento: number;
     pista_numero?: number;
+    proveedor_audio?: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+    proveedor_id?: string;
     archivo_url: string;
     bit_rate_kbps?: number;
     genero_ids: number[];
@@ -216,6 +269,8 @@ export class ApiService {
       duracion_segundos: number;
       anio_lanzamiento: number;
       pista_numero?: number;
+      proveedor_audio?: 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+      proveedor_id?: string;
       archivo_url: string;
       bit_rate_kbps?: number;
       genero_ids: number[];
@@ -361,5 +416,25 @@ export class ApiService {
     return await this.request<{ message: string }>('/database/reset', {
       method: 'POST'
     });
+  }
+
+  public static async getAnalytics(): Promise<{
+    kpis: {
+      totalCanciones: number;
+      totalArtistas: number;
+      totalAlbumes: number;
+      totalGeneros: number;
+      totalListas: number;
+      totalUsuarios: number;
+      totalSegundos: number;
+      duracionMinutos: number;
+    };
+    genresDistribution: Array<{ nombre: string; count: number; porcentaje: number }>;
+    providerDistribution: Record<string, number>;
+    yearDistribution: Array<{ anio: string; count: number }>;
+    artistSongs: Array<{ id: number; nombre: string; pais: string; totalCanciones: number; totalAlbumes: number }>;
+    academicQueries: Array<{ id: string; titulo: string; descripcion: string; sql: string; tipo: string }>;
+  }> {
+    return await this.request('/database/analytics');
   }
 }

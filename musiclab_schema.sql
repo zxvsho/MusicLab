@@ -109,7 +109,7 @@ CREATE TABLE `generos` (
 
 -- TABLA 6: CANCIONES
 -- Catálogo principal de pistas musicales con metadatos y referencia de archivo.
--- Nota: La base de datos almacena la ruta o URL externa/local, no el binario pesado.
+-- Fuente por defecto: Proveedores de streaming (YouTube, SoundCloud, Enlace Directo).
 CREATE TABLE `canciones` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `artista_id` INT UNSIGNED NOT NULL,
@@ -118,6 +118,8 @@ CREATE TABLE `canciones` (
   `duracion_segundos` SMALLINT UNSIGNED NOT NULL,
   `anio_lanzamiento` SMALLINT UNSIGNED NOT NULL,
   `pista_numero` TINYINT UNSIGNED NULL DEFAULT 1,
+  `proveedor_audio` ENUM('youtube', 'soundcloud', 'direct_url', 'spotify') NOT NULL DEFAULT 'youtube',
+  `proveedor_id` VARCHAR(100) NULL,
   `archivo_url` VARCHAR(500) NOT NULL,
   `bit_rate_kbps` SMALLINT UNSIGNED NULL DEFAULT 320,
   `fecha_subida` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -126,6 +128,7 @@ CREATE TABLE `canciones` (
   KEY `idx_canciones_album` (`album_id`),
   KEY `idx_canciones_titulo` (`titulo`),
   KEY `idx_canciones_anio` (`anio_lanzamiento`),
+  KEY `idx_canciones_proveedor` (`proveedor_audio`),
   CONSTRAINT `fk_canciones_artistas`
     FOREIGN KEY (`artista_id`) REFERENCES `artistas` (`id`)
     ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -236,16 +239,16 @@ INSERT INTO `albumes` (`id`, `artista_id`, `titulo`, `anio_lanzamiento`, `discog
 (3, 3, 'Resonancias de Cristal', 2022, 'Conservatorio Ediciones', 'Ciclo de estudios breves para piano solista y cuerdas frotadas.', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80'),
 (4, 4, 'Luces de Neón 1984', 2025, 'Analog Wave Records', 'Sintetizadores polifónicos analógicos Juno-60 y secuenciadores de época.', 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&q=80');
 
--- Canciones (Nota: archivo_url almacena la ruta de acceso al recurso de audio)
-INSERT INTO `canciones` (`id`, `artista_id`, `album_id`, `titulo`, `duracion_segundos`, `anio_lanzamiento`, `pista_numero`, `archivo_url`, `bit_rate_kbps`) VALUES
-(1, 1, 1, 'Amanecer en el Valle', 245, 2023, 1, 'https://cdn.freesound.org/previews/612/612092_5674468-lq.mp3', 320),
-(2, 1, 1, 'Vientos de Altura', 312, 2023, 2, 'https://cdn.freesound.org/previews/568/568903_12876615-lq.mp3', 320),
-(3, 2, 2, 'Mareas de Invierno', 198, 2024, 1, 'https://cdn.freesound.org/previews/536/536108_7037-lq.mp3', 256),
-(4, 2, 2, 'Callejón de Sombras', 224, 2024, 2, 'https://cdn.freesound.org/previews/608/608645_11861866-lq.mp3', 320),
-(5, 3, 3, 'Nocturno en Do Menor', 185, 2022, 1, 'https://cdn.freesound.org/previews/469/469904_7037-lq.mp3', 320),
-(6, 3, 3, 'Luz Filtrada', 210, 2022, 2, 'https://cdn.freesound.org/previews/515/515823_11861866-lq.mp3', 320),
-(7, 4, 4, 'Cybernetic Highway', 268, 2025, 1, 'https://cdn.freesound.org/previews/495/495574_10672027-lq.mp3', 320),
-(8, 4, 4, 'Tokyo Midnight Drift', 290, 2025, 2, 'https://cdn.freesound.org/previews/530/530701_11861866-lq.mp3', 320);
+-- Canciones (Fuente por defecto: Proveedor YouTube con referencia reproducible)
+INSERT INTO `canciones` (`id`, `artista_id`, `album_id`, `titulo`, `duracion_segundos`, `anio_lanzamiento`, `pista_numero`, `proveedor_audio`, `proveedor_id`, `archivo_url`, `bit_rate_kbps`) VALUES
+(1, 1, 1, 'Amanecer en el Valle', 245, 2023, 1, 'youtube', 'DWcJFNfaw9c', 'https://www.youtube.com/watch?v=DWcJFNfaw9c', 320),
+(2, 1, 1, 'Vientos de Altura', 312, 2023, 2, 'youtube', 'jfKfPfyJRdk', 'https://www.youtube.com/watch?v=jfKfPfyJRdk', 320),
+(3, 2, 2, 'Mareas de Invierno', 198, 2024, 1, 'youtube', '5qap5aO4i9A', 'https://www.youtube.com/watch?v=5qap5aO4i9A', 256),
+(4, 2, 2, 'Callejón de Sombras', 224, 2024, 2, 'youtube', 'kXYiU_JCYtU', 'https://www.youtube.com/watch?v=kXYiU_JCYtU', 320),
+(5, 3, 3, 'Nocturno en Do Menor', 185, 2022, 1, 'youtube', '4Tr0otuiQuU', 'https://www.youtube.com/watch?v=4Tr0otuiQuU', 320),
+(6, 3, 3, 'Luz Filtrada', 210, 2022, 2, 'youtube', '7NOSDKb0HlU', 'https://www.youtube.com/watch?v=7NOSDKb0HlU', 320),
+(7, 4, 4, 'Cybernetic Highway', 268, 2025, 1, 'youtube', 'MVPTGNGiI-4', 'https://www.youtube.com/watch?v=MVPTGNGiI-4', 320),
+(8, 4, 4, 'Tokyo Midnight Drift', 290, 2025, 2, 'youtube', '21X5lGlDOfg', 'https://www.youtube.com/watch?v=21X5lGlDOfg', 320);
 
 -- Relación Canciones con Géneros (N:M)
 INSERT INTO `cancion_generos` (`cancion_id`, `genero_id`) VALUES

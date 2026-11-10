@@ -53,6 +53,14 @@ export function getSongById(req: AuthenticatedRequest, res: Response): void {
   res.json({ data: enriched });
 }
 
+function parseYouTubeId(url: string): string {
+  if (!url) return '';
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (match) return match[1];
+  if (url.length === 11 && !url.includes('/') && !url.includes('.')) return url;
+  return '';
+}
+
 export function createSong(req: AuthenticatedRequest, res: Response): void {
   try {
     const {
@@ -62,6 +70,8 @@ export function createSong(req: AuthenticatedRequest, res: Response): void {
       duracion_segundos,
       anio_lanzamiento,
       pista_numero,
+      proveedor_audio,
+      proveedor_id,
       archivo_url,
       bit_rate_kbps,
       genero_ids
@@ -100,6 +110,9 @@ export function createSong(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
+    const provAudio = proveedor_audio || 'youtube';
+    const finalProvId = proveedor_id || (provAudio === 'youtube' ? parseYouTubeId(archivo_url) : '');
+
     const newSong = db.createSong({
       artista_id: Number(artista_id),
       album_id: album_id ? Number(album_id) : null,
@@ -107,6 +120,8 @@ export function createSong(req: AuthenticatedRequest, res: Response): void {
       duracion_segundos: duracionNum,
       anio_lanzamiento: anioNum,
       pista_numero: pista_numero ? Number(pista_numero) : 1,
+      proveedor_audio: provAudio,
+      proveedor_id: finalProvId,
       archivo_url,
       bit_rate_kbps: bit_rate_kbps ? Number(bit_rate_kbps) : 320,
       genero_ids: Array.isArray(genero_ids) ? genero_ids.map(Number) : []
@@ -137,6 +152,8 @@ export function updateSong(req: AuthenticatedRequest, res: Response): void {
       duracion_segundos,
       anio_lanzamiento,
       pista_numero,
+      proveedor_audio,
+      proveedor_id,
       archivo_url,
       bit_rate_kbps,
       genero_ids
@@ -171,6 +188,9 @@ export function updateSong(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
+    const provAudio = proveedor_audio || 'youtube';
+    const finalProvId = proveedor_id || (provAudio === 'youtube' ? parseYouTubeId(archivo_url) : '');
+
     const updated = db.updateSong(id, {
       artista_id: Number(artista_id),
       album_id: album_id ? Number(album_id) : null,
@@ -178,6 +198,8 @@ export function updateSong(req: AuthenticatedRequest, res: Response): void {
       duracion_segundos: duracionNum,
       anio_lanzamiento: anioNum,
       pista_numero: pista_numero ? Number(pista_numero) : undefined,
+      proveedor_audio: provAudio,
+      proveedor_id: finalProvId,
       archivo_url,
       bit_rate_kbps: bit_rate_kbps ? Number(bit_rate_kbps) : undefined,
       genero_ids: Array.isArray(genero_ids) ? genero_ids.map(Number) : []

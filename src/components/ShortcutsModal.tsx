@@ -19,7 +19,9 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
         { key: '<Space> 4', desc: 'Búfer de Géneros (generos.tax)' },
         { key: '<Space> 5', desc: 'Búfer de Listas de Reproducción (listas.m3u)' },
         { key: '<Space> 6', desc: 'Esquema MySQL y Diagrama ER (esquema_er.mmd)' },
-        { key: '<Space> 7', desc: 'Terminal Interactiva MySQL (consola_mysql.sql)' }
+        { key: '<Space> 7', desc: 'Terminal Interactiva MySQL (consola_mysql.sql)' },
+        { key: '<Space> 8', desc: 'Extracción Analítica y Subconsultas (analitica.sql)' },
+        { key: '<Space> 9', desc: 'Informe Académico TCC Universidad de Cartagena (informe_tcc.md)' }
       ]
     },
     {

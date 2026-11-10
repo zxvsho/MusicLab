@@ -16,7 +16,9 @@ import {
   Pencil,
   Check,
   Github,
-  UserPlus
+  UserPlus,
+  BarChart3,
+  GraduationCap
 } from 'lucide-react';
 import type { Usuario } from '../types/index.ts';
 
@@ -55,7 +57,9 @@ export const LazyVimTopBar: React.FC<LazyVimTopBarProps> = ({
     { id: 'genres', label: 'generos.tax', icon: Tag, num: '4' },
     { id: 'playlists', label: 'listas.m3u', icon: ListMusic, num: '5' },
     { id: 'schema', label: 'esquema_er.mmd', icon: Database, num: '6' },
-    { id: 'console', label: 'consola_mysql.sql', icon: Terminal, num: '7' }
+    { id: 'console', label: 'consola_mysql.sql', icon: Terminal, num: '7' },
+    { id: 'analytics', label: 'analitica.sql', icon: BarChart3, num: '8' },
+    { id: 'report', label: 'informe_tcc.md', icon: GraduationCap, num: '9' }
   ];
 
   const handleSaveEntity = () => {

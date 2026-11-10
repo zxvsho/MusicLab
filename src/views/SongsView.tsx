@@ -66,7 +66,9 @@ export const SongsView: React.FC<SongsViewProps> = ({
     duracion_segundos: '240',
     anio_lanzamiento: new Date().getFullYear().toString(),
     pista_numero: '1',
-    archivo_url: 'https://cdn.freesound.org/previews/612/612092_5674468-lq.mp3',
+    proveedor_audio: 'youtube' as 'youtube' | 'soundcloud' | 'direct_url' | 'spotify',
+    proveedor_id: 'DWcJFNfaw9c',
+    archivo_url: 'https://www.youtube.com/watch?v=DWcJFNfaw9c',
     bit_rate_kbps: '320',
     genero_ids: [] as number[]
   });
@@ -148,6 +150,14 @@ export const SongsView: React.FC<SongsViewProps> = ({
     setSortOrder('recientes');
   };
 
+  const extractYouTubeId = (url: string): string => {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? match[1] : '';
+  };
+
   // Abrir modal nueva canción
   const handleOpenCreateModal = () => {
     if (!isAdmin) {
@@ -165,7 +175,9 @@ export const SongsView: React.FC<SongsViewProps> = ({
       duracion_segundos: '210',
       anio_lanzamiento: new Date().getFullYear().toString(),
       pista_numero: '1',
-      archivo_url: 'https://cdn.freesound.org/previews/612/612092_5674468-lq.mp3',
+      proveedor_audio: 'youtube',
+      proveedor_id: 'DWcJFNfaw9c',
+      archivo_url: 'https://www.youtube.com/watch?v=DWcJFNfaw9c',
       bit_rate_kbps: '320',
       genero_ids: genres[0] ? [genres[0].id] : []
     });
@@ -190,6 +202,8 @@ export const SongsView: React.FC<SongsViewProps> = ({
       duracion_segundos: song.duracion_segundos.toString(),
       anio_lanzamiento: song.anio_lanzamiento.toString(),
       pista_numero: song.pista_numero.toString(),
+      proveedor_audio: song.proveedor_audio || 'youtube',
+      proveedor_id: song.proveedor_id || extractYouTubeId(song.archivo_url) || '',
       archivo_url: song.archivo_url,
       bit_rate_kbps: song.bit_rate_kbps.toString(),
       genero_ids: song.generos.map((g) => g.id)
@@ -213,6 +227,16 @@ export const SongsView: React.FC<SongsViewProps> = ({
     if (isNaN(anioNum) || anioNum < 1900 || anioNum > 2030) errors.push('El año de lanzamiento es inválido.');
     if (!songForm.archivo_url.trim()) errors.push('La referencia o URL al archivo es obligatoria.');
 
+    let finalProveedorId = songForm.proveedor_id;
+    if (songForm.proveedor_audio === 'youtube') {
+      const parsed = extractYouTubeId(songForm.archivo_url) || songForm.proveedor_id;
+      if (!parsed) {
+        errors.push('Debe indicar una URL válida de YouTube o un ID de video de 11 caracteres.');
+      } else {
+        finalProveedorId = parsed;
+      }
+    }
+
     if (errors.length > 0) {
       setFormErrors(errors);
       return;
@@ -227,6 +251,8 @@ export const SongsView: React.FC<SongsViewProps> = ({
         duracion_segundos: durNum,
         anio_lanzamiento: anioNum,
         pista_numero: Number(songForm.pista_numero) || 1,
+        proveedor_audio: songForm.proveedor_audio,
+        proveedor_id: finalProveedorId || undefined,
         archivo_url: songForm.archivo_url.trim(),
         bit_rate_kbps: Number(songForm.bit_rate_kbps) || 320,
         genero_ids: songForm.genero_ids
@@ -521,16 +547,36 @@ export const SongsView: React.FC<SongsViewProps> = ({
 
                       {/* Título de la Canción */}
                       <td className="py-2.5 px-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className={`font-semibold ${isCurrent ? 'text-[#7dcfff]' : 'text-[#c0caf5]'}`}>
                             {song.titulo}
                           </span>
                           {song.es_favorito && (
                             <Heart className="w-3 h-3 text-[#f7768e] fill-current shrink-0" />
                           )}
+                          {song.proveedor_audio === 'youtube' && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#f7768e]/15 border border-[#f7768e]/40 text-[#f7768e] shrink-0">
+                              󰗃 YouTube
+                            </span>
+                          )}
+                          {song.proveedor_audio === 'soundcloud' && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#ff9e64]/15 border border-[#ff9e64]/40 text-[#ff9e64] shrink-0">
+                              󰎆 SoundCloud
+                            </span>
+                          )}
+                          {song.proveedor_audio === 'spotify' && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#73daca]/15 border border-[#73daca]/40 text-[#73daca] shrink-0">
+                              󰓇 Spotify
+                            </span>
+                          )}
+                          {song.proveedor_audio === 'direct_url' && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#9ece6a]/15 border border-[#9ece6a]/40 text-[#9ece6a] shrink-0">
+                              󰌷 Directo
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] text-[#565f89] truncate max-w-xs">
-                          {song.archivo_url}
+                          {song.proveedor_id ? `ID: ${song.proveedor_id} • ` : ''}{song.archivo_url}
                         </div>
                       </td>
 
@@ -823,22 +869,108 @@ export const SongsView: React.FC<SongsViewProps> = ({
                 </div>
               </div>
 
-              {/* Referencia o URL al Archivo de Audio */}
-              <div>
-                <label className="block text-[#7aa2f7] mb-1">
-                  Referencia o URL al Archivo de Audio (No binario en BD) *:
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={songForm.archivo_url}
-                  onChange={(e) => setSongForm({ ...songForm, archivo_url: e.target.value })}
-                  placeholder="https://cdn.example.org/audio/track_01.mp3 o /storage/audio/..."
-                  className="w-full bg-[#16161e] border border-[#24283b] focus:border-[#7aa2f7] rounded p-2 text-xs text-[#c0caf5] focus:outline-none"
-                />
-                <span className="text-[10px] text-[#565f89] block mt-1">
-                  Nota técnica: En MySQL se persiste la URL o ruta local, garantizando un catálogo ágil y escalable.
-                </span>
+              {/* Selector de Proveedor de Audio y Fuente Externa */}
+              <div className="p-3 bg-[#16161e] border border-[#24283b] rounded space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[#7aa2f7] font-semibold text-xs flex items-center gap-1.5">
+                    <span>Proveedor de Audio (Fuente Externa) *</span>
+                  </label>
+                  <span className="text-[10px] text-[#9ece6a] bg-[#1a1b26] px-2 py-0.5 rounded border border-[#292e42]">
+                    MySQL ENUM: proveedor_audio
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {[
+                    { id: 'youtube', label: 'YouTube (Defecto)', icon: '󰗃', color: 'border-[#f7768e] text-[#f7768e]' },
+                    { id: 'soundcloud', label: 'SoundCloud', icon: '󰎆', color: 'border-[#ff9e64] text-[#ff9e64]' },
+                    { id: 'spotify', label: 'Spotify', icon: '󰓇', color: 'border-[#73daca] text-[#73daca]' },
+                    { id: 'direct_url', label: 'Enlace Directo / MP3', icon: '󰌷', color: 'border-[#9ece6a] text-[#9ece6a]' }
+                  ].map((prov) => {
+                    const isSelected = songForm.proveedor_audio === prov.id;
+                    return (
+                      <button
+                        key={prov.id}
+                        type="button"
+                        onClick={() => {
+                          const nextProv = prov.id as 'youtube' | 'soundcloud' | 'direct_url' | 'spotify';
+                          let sampleUrl = songForm.archivo_url;
+                          let sampleId = songForm.proveedor_id;
+                          if (nextProv === 'youtube' && !songForm.proveedor_id) {
+                            sampleId = 'DWcJFNfaw9c';
+                            sampleUrl = 'https://www.youtube.com/watch?v=DWcJFNfaw9c';
+                          }
+                          setSongForm({
+                            ...songForm,
+                            proveedor_audio: nextProv,
+                            archivo_url: sampleUrl,
+                            proveedor_id: sampleId
+                          });
+                        }}
+                        className={`p-2 rounded border text-left flex items-center gap-1.5 transition-all text-[11px] ${
+                          isSelected
+                            ? `bg-[#1a1b26] font-bold ${prov.color}`
+                            : 'border-[#24283b] text-[#565f89] hover:text-[#c0caf5] hover:bg-[#1a1b26]'
+                        }`}
+                      >
+                        <span>{prov.icon}</span>
+                        <span className="truncate">{prov.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Input URL o ID de YouTube */}
+                <div>
+                  <label className="block text-[#a9b1d6] text-[11px] mb-1">
+                    {songForm.proveedor_audio === 'youtube'
+                      ? 'URL de YouTube o Video ID (ej: https://www.youtube.com/watch?v=DWcJFNfaw9c o DWcJFNfaw9c) *:'
+                      : 'URL / Referencia al archivo de audio *:'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={songForm.archivo_url}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const ytId = songForm.proveedor_audio === 'youtube' ? extractYouTubeId(val) : '';
+                      setSongForm({
+                        ...songForm,
+                        archivo_url: val,
+                        proveedor_id: ytId || songForm.proveedor_id
+                      });
+                    }}
+                    placeholder={
+                      songForm.proveedor_audio === 'youtube'
+                        ? 'https://www.youtube.com/watch?v=DWcJFNfaw9c'
+                        : 'https://cdn.example.org/audio/track_01.mp3'
+                    }
+                    className="w-full bg-[#1a1b26] border border-[#24283b] focus:border-[#7aa2f7] rounded p-2 text-xs text-[#c0caf5] focus:outline-none"
+                  />
+                  {songForm.proveedor_audio === 'youtube' && (
+                    <div className="flex items-center justify-between text-[10px] text-[#565f89] mt-1">
+                      <span>
+                        ID detectado para streaming IFrame: <code className="text-[#9ece6a]">{extractYouTubeId(songForm.archivo_url) || songForm.proveedor_id || 'No detectado'}</code>
+                      </span>
+                      <span className="text-[#7aa2f7]">Reproduce nativamente con IFrame API</span>
+                    </div>
+                  )}
+                  {songForm.proveedor_audio === 'direct_url' && (
+                    <div className="text-[10px] text-[#565f89] mt-1">
+                      Soporta archivos MP3, AAC, OGG y FLAC alojados en CDNs o servidores de audio.
+                    </div>
+                  )}
+                  {songForm.proveedor_audio === 'soundcloud' && (
+                    <div className="text-[10px] text-[#565f89] mt-1">
+                      URL del track de SoundCloud para incrustación o reproducción vía widget.
+                    </div>
+                  )}
+                  {songForm.proveedor_audio === 'spotify' && (
+                    <div className="text-[10px] text-[#565f89] mt-1">
+                      Enlace de canción o track URI de Spotify para integración y preview.
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="pt-3 border-t border-[#24283b] flex items-center justify-end gap-2">
