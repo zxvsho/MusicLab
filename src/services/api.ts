@@ -8,6 +8,7 @@ import type {
   DatabaseMetadata,
   QueryResult
 } from '../types/index.ts';
+import { ClientRelationalDB } from './clientDatabase.ts';
 
 const TOKEN_KEY = 'musiclab_jwt_token';
 const USER_KEY = 'musiclab_current_user';
@@ -47,22 +48,107 @@ export class ApiService {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`/api${endpoint}`, {
-      ...options,
-      headers
-    });
+    try {
+      const response = await fetch(`/api${endpoint}`, {
+        ...options,
+        headers
+      });
 
-    const data = await response.json().catch(() => ({}));
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        // En GitHub Pages los endpoints /api/ devuelven 404 HTML
+        throw new Error('StaticEnvironment');
+      }
 
-    if (!response.ok) {
-      const errorMsg = data.error || data.message || `Error del servidor (${response.status})`;
-      throw new Error(errorMsg);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || `Error del servidor (${response.status})`;
+        throw new Error(errorMsg);
+      }
+
+      return data as T;
+    } catch (err: any) {
+      // Si estamos en un host estático como GitHub Pages, atender mediante ClientRelationalDB
+      if (err.message === 'StaticEnvironment' || err.message?.includes('Failed to fetch')) {
+        return this.handleStaticFallback<T>(endpoint, options);
+      }
+      throw err;
+    }
+  }
+
+  // Manejador autónomo para despliegue estático en GitHub Pages
+  private static handleStaticFallback<T>(endpoint: string, options: RequestInit): T {
+    const db = ClientRelationalDB.load();
+
+    if (endpoint.startsWith('/auth/register')) {
+      const body = JSON.parse((options.body as string) || '{}');
+      const user = ClientRelationalDB.registerUser(body.nombre, body.email, body.rol_id);
+      return { token: 'ghpages_jwt_' + Date.now(), user } as T;
     }
 
-    return data as T;
+    if (endpoint.startsWith('/auth/login')) {
+      const body = JSON.parse((options.body as string) || '{}');
+      const user = ClientRelationalDB.loginUser(body.email);
+      return { token: 'ghpages_jwt_' + Date.now(), user } as T;
+    }
+
+    if (endpoint.startsWith('/songs')) {
+      return { total: db.canciones.length, data: db.canciones } as T;
+    }
+
+    if (endpoint.startsWith('/artists')) {
+      return { total: db.artistas.length, data: db.artistas } as T;
+    }
+
+    if (endpoint.startsWith('/albums')) {
+      return { total: db.albumes.length, data: db.albumes } as T;
+    }
+
+    if (endpoint.startsWith('/genres')) {
+      return { total: db.generos.length, data: db.generos } as T;
+    }
+
+    if (endpoint.startsWith('/playlists')) {
+      return { total: db.listas.length, data: db.listas } as T;
+    }
+
+    if (endpoint.startsWith('/database/schema')) {
+      return {
+        databaseName: 'musiclab_db',
+        motor: 'MySQL 8.0+ / MariaDB 10.5+ (GitHub Pages Emulation)',
+        charset: 'utf8mb4_unicode_ci',
+        totalTables: 10,
+        stats: { canciones: db.canciones.length, artistas: db.artistas.length },
+        mermaidERD: 'erDiagram\\n  CANCIONES ||--o{ ARTISTAS : interpreta',
+        sqlDDL: '-- MusicLab MySQL Schema\\nCREATE DATABASE musiclab_db;',
+        normalizacion: {
+          primeraFormaNormal: '1FN: Valores atómicos sin redundancias.',
+          segundaFormaNormal: '2FN: Claves completas.',
+          terceraFormaNormal: '3FN: Sin dependencias transitivas.'
+        },
+        cardinalidades: []
+      } as T;
+    }
+
+    return { data: [] } as T;
   }
 
   // Auth
+  public static async register(data: {
+    nombre: string;
+    email: string;
+    password: string;
+    rol_id?: number;
+  }): Promise<{ token: string; user: Usuario }> {
+    const res = await this.request<{ token: string; user: Usuario }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    this.setAuth(res.token, res.user);
+    return res;
+  }
+
   public static async login(email: string, password: string): Promise<{ token: string; user: Usuario }> {
     const res = await this.request<{ token: string; user: Usuario }>('/auth/login', {
       method: 'POST',

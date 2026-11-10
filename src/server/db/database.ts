@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { hashPassword } from '../auth.ts';
+import { hashPassword, generateSalt } from '../auth.ts';
 
 export interface Rol {
   id: number;
@@ -411,6 +411,40 @@ class MusicLabDatabase {
       canciones: 9,
       listas_reproduccion: 3
     };
+  }
+
+  public createUser(data: {
+    nombre: string;
+    email: string;
+    password: string;
+    rol_id?: number;
+  }): Usuario {
+    const emailNorm = data.email.trim().toLowerCase();
+    if (this.usuarios.some((u) => u.email.toLowerCase() === emailNorm)) {
+      throw new Error(`El correo '${data.email}' ya se encuentra registrado en MySQL.`);
+    }
+
+    const salt = generateSalt();
+    const password_hash = hashPassword(data.password, salt);
+    const rol_id = data.rol_id ? Number(data.rol_id) : 2; // Por defecto rol 2 (Solo consulta)
+
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const id = this.nextId.usuarios++;
+
+    const usuario: Usuario = {
+      id,
+      rol_id,
+      nombre: data.nombre.trim(),
+      email: emailNorm,
+      password_hash,
+      salt,
+      estado: 'activo',
+      fecha_registro: now,
+      ultimo_acceso: now
+    };
+
+    this.usuarios.push(usuario);
+    return usuario;
   }
 
   // Helper para enriquecer canciones con artista, álbum, géneros y estado de favorito

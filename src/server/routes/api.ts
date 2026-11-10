@@ -12,6 +12,7 @@ import * as dbCtrl from '../controllers/databaseController.ts';
 const router = Router();
 
 // ==================== AUTENTICACIÓN ====================
+router.post('/auth/register', authCtrl.register);
 router.post('/auth/login', authCtrl.login);
 router.get('/auth/me', authenticateToken, authCtrl.getCurrentUser);
 router.get('/auth/demo', authCtrl.getDemoCredentials);

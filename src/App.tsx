@@ -4,6 +4,7 @@ import { LazyVimStatusLine } from './components/LazyVimStatusLine.tsx';
 import { AudioPlayerBar } from './components/AudioPlayerBar.tsx';
 import { LoginModal } from './components/LoginModal.tsx';
 import { ShortcutsModal } from './components/ShortcutsModal.tsx';
+import { GitHubPagesModal } from './components/GitHubPagesModal.tsx';
 import { NotificationToast, type ToastMessage } from './components/NotificationToast.tsx';
 import { SongsView } from './views/SongsView.tsx';
 import { ArtistsView } from './views/ArtistsView.tsx';
@@ -25,6 +26,7 @@ export default function App() {
   // Modales
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
+  const [isGitHubPagesModalOpen, setIsGitHubPagesModalOpen] = useState<boolean>(false);
 
   // Nombre de la entidad local (personalizable según la consigna académica)
   const [communityName, setCommunityName] = useState<string>(
@@ -201,6 +203,7 @@ export default function App() {
         onLogout={handleLogout}
         onQuickSwitchRole={handleQuickSwitchRole}
         onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
+        onOpenGitHubPages={() => setIsGitHubPagesModalOpen(true)}
         communityName={communityName}
         setCommunityName={setCommunityName}
       />
@@ -266,7 +269,7 @@ export default function App() {
         activeTab={activeTab}
       />
 
-      {/* Modales de Autenticación y Atajos */}
+      {/* Modales de Autenticación, Atajos y Despliegue en GitHub Pages */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -279,6 +282,11 @@ export default function App() {
       <ShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      <GitHubPagesModal
+        isOpen={isGitHubPagesModalOpen}
+        onClose={() => setIsGitHubPagesModalOpen(false)}
       />
 
       {/* Notificaciones Toast */}

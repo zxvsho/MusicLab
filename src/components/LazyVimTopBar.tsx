@@ -14,7 +14,9 @@ import {
   Keyboard,
   Building2,
   Pencil,
-  Check
+  Check,
+  Github,
+  UserPlus
 } from 'lucide-react';
 import type { Usuario } from '../types/index.ts';
 
@@ -26,6 +28,7 @@ interface LazyVimTopBarProps {
   onLogout: () => void;
   onQuickSwitchRole: (targetRole: 'admin' | 'lector') => void;
   onOpenShortcuts: () => void;
+  onOpenGitHubPages: () => void;
   communityName: string;
   setCommunityName: (name: string) => void;
 }
@@ -38,6 +41,7 @@ export const LazyVimTopBar: React.FC<LazyVimTopBarProps> = ({
   onLogout,
   onQuickSwitchRole,
   onOpenShortcuts,
+  onOpenGitHubPages,
   communityName,
   setCommunityName
 }) => {
@@ -150,23 +154,52 @@ export const LazyVimTopBar: React.FC<LazyVimTopBarProps> = ({
             </button>
           </div>
 
+          {/* Botón Guía Despliegue GitHub Pages */}
+          <button
+            onClick={onOpenGitHubPages}
+            className="flex items-center gap-1 text-[#7dcfff] hover:text-white bg-[#1a1b26] border border-[#292e42] px-2 py-0.5 rounded transition-colors text-xs font-mono"
+            title="Ver instrucciones y workflow para desplegar en GitHub Pages"
+          >
+            <Github className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">GitHub Pages</span>
+          </button>
+
           {currentUser ? (
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-1 text-[#f7768e] hover:text-white px-2 py-0.5 rounded transition-colors text-xs font-mono"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-3 h-3" />
-              <span className="hidden sm:inline">Salir</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onOpenLogin}
+                className="flex items-center gap-1 text-[#bb9af7] hover:text-white bg-[#1a1b26] border border-[#292e42] px-2 py-0.5 rounded transition-colors text-xs font-mono"
+                title="Crear un nuevo usuario"
+              >
+                <UserPlus className="w-3 h-3" />
+                <span className="hidden md:inline">Crear Usuario</span>
+              </button>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1 text-[#f7768e] hover:text-white px-2 py-0.5 rounded transition-colors text-xs font-mono"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-3 h-3" />
+                <span className="hidden sm:inline">Salir</span>
+              </button>
+            </div>
           ) : (
-            <button
-              onClick={onOpenLogin}
-              className="flex items-center gap-1 bg-[#7aa2f7] hover:bg-[#89b4fa] text-[#16161e] font-semibold px-2 py-0.5 rounded transition-colors text-xs font-mono"
-            >
-              <LogIn className="w-3 h-3" />
-              <span>Login</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onOpenLogin}
+                className="flex items-center gap-1 bg-[#7aa2f7] hover:bg-[#89b4fa] text-[#16161e] font-semibold px-2 py-0.5 rounded transition-colors text-xs font-mono"
+              >
+                <LogIn className="w-3 h-3" />
+                <span>Login</span>
+              </button>
+              <button
+                onClick={onOpenLogin}
+                className="flex items-center gap-1 bg-[#bb9af7] hover:bg-[#c9aaff] text-[#16161e] font-semibold px-2 py-0.5 rounded transition-colors text-xs font-mono hidden sm:flex"
+              >
+                <UserPlus className="w-3 h-3" />
+                <span>Registrarse</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

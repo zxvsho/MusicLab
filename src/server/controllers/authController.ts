@@ -3,6 +3,58 @@ import { db } from '../db/database.ts';
 import { hashPassword, generateToken } from '../auth.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
+export function register(req: Request, res: Response): void {
+  const { nombre, email, password, rol_id } = req.body;
+
+  if (!nombre || typeof nombre !== 'string' || nombre.trim().length === 0) {
+    res.status(400).json({ error: 'El nombre completo es obligatorio.' });
+    return;
+  }
+
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    res.status(400).json({ error: 'Debe proporcionar un correo electrónico válido.' });
+    return;
+  }
+
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+    return;
+  }
+
+  try {
+    const rolIdNum = rol_id ? Number(rol_id) : 2;
+    const nuevoUsuario = db.createUser({
+      nombre: nombre.trim(),
+      email: email.trim().toLowerCase(),
+      password,
+      rol_id: rolIdNum
+    });
+
+    const rol = db.roles.find((r) => r.id === nuevoUsuario.rol_id);
+    const token = generateToken({
+      id: nuevoUsuario.id,
+      nombre: nuevoUsuario.nombre,
+      email: nuevoUsuario.email,
+      rol_id: nuevoUsuario.rol_id,
+      rol_nombre: rol?.nombre || 'Solo consulta'
+    });
+
+    res.status(201).json({
+      message: 'Usuario registrado exitosamente en la base de datos MySQL.',
+      token,
+      user: {
+        id: nuevoUsuario.id,
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+        rol_id: nuevoUsuario.rol_id,
+        rol_nombre: rol?.nombre || 'Solo consulta'
+      }
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message || 'Error al registrar usuario.' });
+  }
+}
+
 export function login(req: Request, res: Response): void {
   const { email, password } = req.body;
 
