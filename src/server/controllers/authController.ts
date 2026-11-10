@@ -4,7 +4,7 @@ import { hashPassword, generateToken } from '../auth.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 export function register(req: Request, res: Response): void {
-  const { nombre, email, password, rol_id } = req.body;
+  const { nombre, email, password } = req.body;
 
   if (!nombre || typeof nombre !== 'string' || nombre.trim().length === 0) {
     res.status(400).json({ error: 'El nombre completo es obligatorio.' });
@@ -22,7 +22,7 @@ export function register(req: Request, res: Response): void {
   }
 
   try {
-    const rolIdNum = rol_id ? Number(rol_id) : 2;
+    const rolIdNum = 2;
     const nuevoUsuario = db.createUser({
       nombre: nombre.trim(),
       email: email.trim().toLowerCase(),
