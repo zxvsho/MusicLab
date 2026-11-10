@@ -82,14 +82,12 @@ export class ApiService {
     const db = ClientRelationalDB.load();
 
     if (endpoint.startsWith('/auth/register')) {
-      const body = JSON.parse((options.body as string) || '{}');
-      const user = ClientRelationalDB.registerUser(body.nombre, body.email, body.rol_id);
-      return { token: 'ghpages_jwt_' + Date.now(), user } as T;
+      throw new Error('El registro de usuarios requiere el servidor MusicLab.');
     }
 
     if (endpoint.startsWith('/auth/login')) {
       const body = JSON.parse((options.body as string) || '{}');
-      const user = ClientRelationalDB.loginUser(body.email);
+      const user = ClientRelationalDB.loginUser(body.email, body.password);
       return { token: 'ghpages_jwt_' + Date.now(), user } as T;
     }
 
