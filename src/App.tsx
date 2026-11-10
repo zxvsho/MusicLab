@@ -55,15 +55,6 @@ export default function App() {
     const storedUser = ApiService.getStoredUser();
     if (storedUser) {
       setCurrentUser(storedUser);
-    } else {
-      // Iniciar automáticamente con la cuenta Administrador de demostración para facilidad de evaluación
-      ApiService.login('admin@musiclab.local', 'Admin123!')
-        .then((res) => {
-          setCurrentUser(res.user);
-        })
-        .catch(() => {
-          // Si falla, el usuario puede iniciar sesión manualmente
-        });
     }
 
     // Cargar canciones iniciales para el reproductor
