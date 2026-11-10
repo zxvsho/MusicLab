@@ -4,7 +4,9 @@ import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 export function listPlaylists(req: AuthenticatedRequest, res: Response): void {
   const currentUserId = req.user?.id;
-  const listas = db.listas_reproduccion.map((l) => {
+  const listas = db.listas_reproduccion
+    .filter((l) => l.es_publica || l.usuario_id === currentUserId || req.user?.rol_nombre === 'Administrador')
+    .map((l) => {
     const creador = db.usuarios.find((u) => u.id === l.usuario_id);
     const relaciones = db.lista_canciones
       .filter((lc) => lc.lista_id === l.id)
@@ -47,6 +49,11 @@ export function getPlaylistById(req: AuthenticatedRequest, res: Response): void 
     return;
   }
 
+  if (!lista.es_publica && currentUserId !== lista.usuario_id && req.user?.rol_nombre !== 'Administrador') {
+    res.status(404).json({ error: 'Lista de reproducción no encontrada.' });
+    return;
+  }
+
   const creador = db.usuarios.find((u) => u.id === lista.usuario_id);
   const relaciones = db.lista_canciones
     .filter((lc) => lc.lista_id === lista.id)
@@ -83,7 +90,11 @@ export function createPlaylist(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
-    const userId = req.user?.id || 1;
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Debe iniciar sesión para crear una lista.' });
+      return;
+    }
     const nueva = db.createPlaylist({
       usuario_id: userId,
       nombre,
@@ -101,6 +112,15 @@ export function createPlaylist(req: AuthenticatedRequest, res: Response): void {
 export function addSongToPlaylist(req: AuthenticatedRequest, res: Response): void {
   try {
     const lista_id = Number(req.params.id);
+    const lista = db.listas_reproduccion.find((item) => item.id === lista_id);
+    if (!lista) {
+      res.status(404).json({ error: 'Lista de reproducción no encontrada.' });
+      return;
+    }
+    if (req.user?.rol_nombre !== 'Administrador' && req.user?.id !== lista.usuario_id) {
+      res.status(403).json({ error: 'No tienes permiso para modificar esta lista.' });
+      return;
+    }
     const { cancion_id } = req.body;
 
     if (!cancion_id || isNaN(Number(cancion_id))) {
@@ -124,6 +144,15 @@ export function removeSongFromPlaylist(req: AuthenticatedRequest, res: Response)
   try {
     const lista_id = Number(req.params.id);
     const cancion_id = Number(req.params.cancionId);
+    const lista = db.listas_reproduccion.find((item) => item.id === lista_id);
+    if (!lista) {
+      res.status(404).json({ error: 'Lista de reproducción no encontrada.' });
+      return;
+    }
+    if (req.user?.rol_nombre !== 'Administrador' && req.user?.id !== lista.usuario_id) {
+      res.status(403).json({ error: 'No tienes permiso para modificar esta lista.' });
+      return;
+    }
 
     const exito = db.removeSongFromPlaylist(lista_id, cancion_id);
     if (!exito) {
