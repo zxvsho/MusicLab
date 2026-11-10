@@ -1,6 +1,17 @@
 import crypto from 'node:crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'musiclab_super_secret_jwt_key_academic_demo_2026';
+const JWT_SECRET = process.env.JWT_SECRET || (
+  process.env.NODE_ENV === 'production'
+    ? ''
+    : 'musiclab_super_secret_jwt_key_academic_demo_2026'
+);
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET es obligatorio en producción. Configure una clave aleatoria de al menos 32 caracteres.');
+}
+if (JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET debe tener al menos 32 caracteres.');
+}
 
 export interface UserPayload {
   id: number;
