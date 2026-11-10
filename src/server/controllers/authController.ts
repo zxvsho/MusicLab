@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+  import type { Request, Response } from 'express';
 import { db } from '../db/database.ts';
 import { hashPassword, generateToken } from '../auth.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
