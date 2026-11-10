@@ -1,0 +1,6 @@
+{
+  "name": "MusicLab - Sistema de Gestión Musical y Base de Datos MySQL",
+  "description": "Propuesta de sistema académico con base de datos relacional MySQL normalizada, API REST en Node.js/Express, autenticación JWT con control de acceso por roles y aplicación web en React con estética retro LazyVim Tokyo Night.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
