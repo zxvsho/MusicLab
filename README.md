@@ -6,9 +6,11 @@
 
 ---
 
+> **Alcance y seguridad:** este proyecto es una demostración académica, no un servicio de producción. Consulte [CONFIGURACION_SEGURA.md](./docs/CONFIGURACION_SEGURA.md) para instalación, limitaciones y despliegue.
+
 ## 1. Descripción del Proyecto
 
-**MusicLab** es una plataforma web académica integral y modular con base de datos relacional MySQL normalizada (1FN, 2FN y 3FN), backend API REST en Node.js/Express y frontend reactivo en React + TypeScript con estilizado Tailwind CSS.
+**MusicLab** es una aplicación académica en React + TypeScript con una API de Node.js/Express y un almacén relacional de demostración en memoria. El esquema MySQL se entrega como script independiente; el servidor de la aplicación no se conecta a MySQL ni persiste los datos entre reinicios.
 
 El sistema adopta una estética retro inspirada en la paleta cromática **Tokyo Night Storm** y la disposición de búferes del editor **LazyVim / Neovim**, facilitando tanto la administración de catálogos como la evaluación docente mediante atajos de teclado y consola SQL interactiva.
 
@@ -23,8 +25,8 @@ El sistema adopta una estética retro inspirada en la paleta cromática **Tokyo 
   - Exportación relacional jerárquica a **JSON**.
   - Subconsultas complejas con `IN`, subconsultas correlacionadas con `EXISTS`, agrupaciones con `GROUP BY` y condiciones de grupo con `HAVING`.
   - Panel de Indicadores Clave de Rendimiento (KPIs) de catálogo y duración acumulada.
-- **Seguridad Criptográfica:** Contraseñas hasheadas con sal criptográfica única de 32 bytes (`Salt + SHA-256`), tokens de sesión `JWT` y **consultas 100% parametrizadas** con marcadores posicionales (`?`) para neutralizar la inyección SQL.
-- **Alojamiento Dual (Full-Stack y GitHub Pages):** Servidor Express + Vite en desarrollo local y motor relacional autónomo en cliente (`localStorage`) para despliegue estático sin servidor en **GitHub Pages**.
+- **Autenticación para demostración local:** hashes de contraseñas y tokens JWT. La consola SQL es un simulador educativo; no ejecuta consultas contra MySQL ni ofrece consultas parametrizadas a una base de datos real. No usar como servicio de producción.
+- **Dos modos de demostración:** servidor Express local con datos en memoria, o frontend estático en GitHub Pages con datos en `localStorage`. GitHub Pages no ejecuta el backend: sus cuentas y roles son solo una simulación local, no una frontera de seguridad.
 
 ---
 
@@ -37,7 +39,7 @@ Para evaluar los dos perfiles de usuario requeridos en la guía académica:
 | **Administrador** | `admin@musiclab.local` | `Admin123!` | Lectura, inserción, edición, eliminación y consola DDL/DML |
 | **Solo consulta** | `lector@musiclab.local` | `Lector123!` | Solo visualización y búsqueda multicriterio |
 
-*Nota:* Puede alternar entre perfiles con un solo clic usando los botones **Rol Demo (Admin / Consulta)** situados en la barra superior. Además, puede registrar nuevos usuarios desde el botón **"Crear Usuario"** o la pestaña de registro del modal de login.
+*Nota:* Las cuentas anteriores son únicamente para la demostración local. No reutilice estas credenciales en ningún servicio público. En GitHub Pages solo funcionan las cuentas demo y no se permite registrar usuarios; los datos residen en el navegador actual.
 
 ---
 
@@ -163,7 +165,7 @@ APP_URL=http://localhost:3000
 ### 6.1. Requisitos Previos
 - **Node.js:** Versión 18.0 o superior (se recomienda Node 20 LTS o 22).
 - **npm:** Versión 9.0 o superior.
-- **MySQL Server (Opcional):** Versión 8.0+ o MariaDB 10.5+ si desea conectarlo a una instancia local propia. *(El sistema incluye un motor relacional en memoria pre-sembrado que reproduce de forma idéntica las restricciones, índices y sintaxis de MySQL)*.
+- **MySQL Server (opcional):** Versión 8.0+ para ejecutar manualmente `musiclab_schema.sql`. La API del proyecto actualmente no conecta a ese servidor: sus datos de aplicación viven en memoria y se reinician al reiniciar Node.js.
 
 ### 6.2. Instalación de Dependencias
 Clone el repositorio o descárguelo en su equipo y ejecute:
@@ -215,7 +217,7 @@ MusicLab está configurado para desplegarse de manera 100% autónoma en **GitHub
    ```
    https://<tu-usuario>.github.io/<tu-repositorio>/
    ```
-5. Al abrir la web en GitHub Pages, el módulo `ClientRelationalDB` toma el control de forma transparente en el navegador: permite iniciar sesión, crear nuevos usuarios, buscar canciones, reproducir YouTube nativamente, crear listas y exportar CSV/JSON sin necesidad de un backend Node.js activo.
+5. GitHub Pages sirve solo el frontend. El modo demo usa `localStorage` del navegador; no ofrece autenticación, permisos ni persistencia compartida seguros. No registre datos personales ni use esta modalidad para producción. Para usar la API, ejecute el servidor Node.js en un hosting compatible.
 
 ---
 
