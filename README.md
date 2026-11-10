@@ -145,7 +145,7 @@ El archivo `.env.example` contiene la plantilla de configuración necesaria:
 PORT=3000
 
 # Clave secreta para la firma y verificación de tokens JWT
-JWT_SECRET=musiclab_jwt_academic_secret_key_change_in_production_2026
+JWT_SECRET= # Configure una clave aleatoria de 32+ caracteres fuera del repositorio
 
 # Configuración de conexión al motor de base de datos MySQL (opcional en desarrollo local)
 DB_HOST=localhost
