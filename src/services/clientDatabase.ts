@@ -391,12 +391,19 @@ export class ClientRelationalDB {
     return nuevo;
   }
 
-  public static loginUser(email: string): Usuario {
-    const data = this.load();
+  public static loginUser(email: string, password: string): Usuario {
     const emailNorm = email.trim().toLowerCase();
-    const found = data.usuarios.find((u) => u.email.toLowerCase() === emailNorm);
+    const demoPasswords: Record<string, string> = {
+      'admin@musiclab.local': 'Admin123!',
+      'lector@musiclab.local': 'Lector123!'
+    };
+    if (demoPasswords[emailNorm] !== password) {
+      throw new Error('Credenciales inválidas. El modo GitHub Pages solo admite las cuentas de demostración.');
+    }
+
+    const found = this.load().usuarios.find((u) => u.email.toLowerCase() === emailNorm);
     if (!found) {
-      throw new Error('Credenciales inválidas o usuario no registrado.');
+      throw new Error('La cuenta de demostración no está disponible. Restablezca los datos locales.');
     }
     return found;
   }
