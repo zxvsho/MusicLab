@@ -57,8 +57,8 @@ router.post('/favorites/:cancionId', authenticateToken, favoriteCtrl.toggleFavor
 // ==================== BASE DE DATOS Y CONSOLA SQL ====================
 router.get('/database/schema', dbCtrl.getDatabaseMetadata);
 router.get('/database/analytics', dbCtrl.getAnalyticsData);
-router.post('/database/query', optionalAuth, dbCtrl.executeSQLQuery);
-router.post('/database/reset', dbCtrl.resetDatabase);
+router.post('/database/query', authenticateToken, dbCtrl.executeSQLQuery);
+router.post('/database/reset', authenticateToken, requireAdmin, dbCtrl.resetDatabase);
 router.get('/database/download-sql', dbCtrl.downloadSchemaSQL);
 
 export default router;
